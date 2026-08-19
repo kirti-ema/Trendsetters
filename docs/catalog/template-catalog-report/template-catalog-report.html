@@ -1,0 +1,952 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Template families</title>
+<style>
+:root {
+  --bg: #0d1117;
+  --card: #161b22;
+  --card-hover: #1f2632;
+  --border: #30363d;
+  --text: #e6edf3;
+  --muted: #8b949e;
+  --accent: #f0c000;
+  --fallback: #d73a49;
+  --good: #2ea043;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+}
+header.summary {
+  position: sticky; top: 0; z-index: 50;
+  background: var(--card); border-bottom: 1px solid var(--border);
+  padding: 12px 20px; display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+}
+header.summary h1 { font-size: 16px; margin: 0; }
+header.summary .stat { font-size: 12px; color: var(--muted); }
+header.summary .stat strong { color: var(--text); font-size: 13px; }
+header.summary .order-note {
+  width: 100%; flex-basis: 100%; margin: 4px 0 0 0; font-size: 11px;
+  color: var(--muted); line-height: 1.4;
+}
+header.summary .order-note code {
+  background: var(--bg); padding: 1px 5px; border-radius: 3px;
+  border: 1px solid var(--border); color: var(--accent);
+}
+header.summary .policy-run {
+  width: 100%; flex-basis: 100%; margin: 0 0 4px 0; font-size: 11px;
+  color: var(--text); line-height: 1.45; background: var(--bg);
+  padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border);
+}
+header.summary .policy-run strong { color: var(--accent); }
+header.summary .policy-run code {
+  background: var(--card); padding: 1px 5px; border-radius: 3px;
+  border: 1px solid var(--border); color: var(--muted); font-size: 10px;
+}
+header.summary .policy-run.policy-stale {
+  border-color: var(--fallback);
+}
+header.summary .policy-stale-note {
+  display: block; margin-top: 6px; color: var(--fallback); font-size: 11px;
+}
+.legend {
+  background: var(--card); border-bottom: 1px solid var(--border);
+  padding: 8px 20px; font-size: 12px; color: var(--muted);
+}
+.legend > summary {
+  cursor: pointer; padding: 4px 0; color: var(--accent); font-weight: 600;
+  list-style: none;
+}
+.legend > summary::-webkit-details-marker { display: none; }
+.legend > summary::before { content: "▸ "; display: inline-block; width: 14px; }
+.legend[open] > summary::before { content: "▾ "; }
+.legend-body { padding: 6px 0 4px 14px; }
+.legend-body p { margin: 4px 0; line-height: 1.45; color: var(--text); }
+.legend-body ul { margin: 4px 0 6px 18px; padding: 0; line-height: 1.55; }
+.legend-body code {
+  background: var(--bg); padding: 1px 6px; border-radius: 3px;
+  border: 1px solid var(--border); color: var(--accent);
+}
+.fb-tag-inline {
+  background: var(--fallback); color: white; padding: 1px 6px;
+  border-radius: 3px; font-size: 10px; font-weight: 600;
+}
+main { padding: 16px 20px; }
+.template {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; margin-bottom: 14px; overflow: visible;
+}
+.template summary {
+  padding: 10px 14px; cursor: pointer; display: flex; flex-direction: column;
+  gap: 8px; align-items: stretch;
+  list-style: none;
+}
+.template summary .summary-row {
+  display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
+}
+.template summary .template-desc {
+  font-size: 11px; color: var(--muted); line-height: 1.45;
+  padding: 6px 0 2px 0; border-top: 1px solid var(--border);
+  max-width: 100%;
+}
+.template summary .template-rep-set {
+  margin-top: 6px; padding: 6px 8px; background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border); border-radius: 4px;
+}
+.template summary .template-rep-set .rep-list {
+  margin: 4px 0 0 16px; padding: 0; font-size: 11px;
+}
+.template summary .template-rep-set .rep-list li {
+  margin: 2px 0; line-height: 1.4;
+}
+.template summary .template-rep-set .rep-list code {
+  background: transparent; color: var(--text); font-size: 11px;
+}
+.template summary .template-rep-set .rep-blocks {
+  color: var(--accent); font-size: 10px; margin-left: 6px;
+}
+.template summary .template-rep-set .rep-blocks-seed {
+  color: var(--muted); font-style: italic;
+}
+.template summary::-webkit-details-marker { display: none; }
+.template summary:hover { background: var(--card-hover); }
+.template summary .tid { font-weight: 600; color: var(--accent); width: 80px; }
+.template summary .size {
+  background: #21262d; padding: 2px 8px; border-radius: 10px;
+  font-size: 11px; color: var(--text); min-width: 60px; text-align: center;
+}
+.template summary .fb-badge {
+  background: var(--fallback); padding: 2px 8px; border-radius: 10px;
+  font-size: 11px; color: white;
+}
+.template summary .clean-badge {
+  background: var(--good); padding: 2px 8px; border-radius: 10px;
+  font-size: 11px; color: white;
+}
+.template summary .preview-strip {
+  display: flex; gap: 4px; flex: 1; max-height: 60px; overflow: hidden;
+}
+.template summary .preview-strip img {
+  height: 60px; width: auto; max-width: 100px; object-fit: cover;
+  border: 1px solid var(--border); border-radius: 3px;
+}
+.template summary .label {
+  font-size: 12px; color: var(--muted); max-width: 380px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.members {
+  border-top: 1px solid var(--border);
+  padding: 12px 14px;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 12px;
+}
+.member {
+  background: #0d1117; border: 1px solid var(--border); border-radius: 6px;
+  padding: 8px; display: flex; flex-direction: column; gap: 6px;
+}
+.member.fb { border-color: var(--fallback); }
+.member .url {
+  font-size: 11px; color: var(--text); word-break: break-all;
+  font-family: ui-monospace, monospace;
+}
+.member .meta { font-size: 10px; color: var(--muted); display: flex; gap: 8px; }
+.member .meta .fb-tag { color: var(--fallback); font-weight: 600; }
+.member .title-line {
+  font-size: 11px; line-height: 1.35;
+  display: flex; gap: 6px; align-items: baseline;
+  padding: 4px 6px;
+  background: #0b1220; border: 1px solid var(--border); border-radius: 4px;
+}
+.member .title-line .label {
+  color: var(--muted); text-transform: uppercase;
+  letter-spacing: 0.4px; font-size: 9px;
+  flex-shrink: 0; padding-top: 1px;
+}
+.member .title-line .value {
+  color: var(--accent); font-weight: 600;
+  word-break: break-word; overflow-wrap: anywhere;
+}
+.member .title-line .value.empty { color: var(--muted); font-weight: 400; font-style: italic; }
+.member-visual {
+  display: flex; flex-direction: row; gap: 10px; align-items: flex-start;
+  min-height: 0;
+}
+.member-col-crop {
+  display: flex; flex-direction: column; gap: 6px; width: 200px; flex-shrink: 0;
+  max-height: 520px; min-height: 0;
+}
+.member-col-full {
+  flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px;
+  position: relative;
+}
+.member.expanded {
+  position: relative;
+  z-index: 30;
+  overflow: visible;
+}
+.crop-label {
+  font-size: 9px; color: var(--muted); text-transform: uppercase;
+  letter-spacing: 0.35px; line-height: 1.2;
+}
+.member-full-wrap {
+  position: relative;
+  max-height: 260px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: #fff;
+  transition: max-height 0.22s ease, box-shadow 0.22s ease;
+}
+.member-full-wrap .full-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+.member-full-wrap .full {
+  display: block;
+  width: 100%;
+  max-height: 260px;
+  height: auto;
+  object-fit: cover;
+  object-position: top center;
+  cursor: zoom-in;
+  transition: max-height 0.22s ease, object-fit 0.22s ease;
+}
+.member-full-wrap.expanded {
+  max-height: none;
+  overflow: visible;
+  box-shadow: 0 20px 56px rgba(0, 0, 0, 0.55);
+}
+.member-full-wrap.expanded .full {
+  max-height: none;
+  height: auto;
+  object-fit: contain;
+  object-position: top center;
+  cursor: zoom-out;
+}
+.member-col-crop .top-wrap {
+  width: 100%; flex-shrink: 0;
+  border: 1px solid var(--border); border-radius: 3px; background: #fff;
+  overflow: hidden;
+}
+.member-col-crop .top-wrap img {
+  display: block; width: 100%; height: auto;
+}
+.body-mask-below-crop {
+  flex: 1; min-height: 0; display: flex; flex-direction: column;
+  max-height: 320px;
+}
+.body-mask-below-crop .body-mask-wrap {
+  margin-top: 0; flex: 1; min-height: 0; display: flex; flex-direction: column;
+}
+.body-mask-below-crop .body-mask-chart--compact {
+  flex: 1; min-height: 0;
+}
+.template-rep-body {
+  width: 100%; flex-basis: 100%;
+  margin: 6px 0 0 0; padding: 8px 0 0 0;
+  border-top: 1px solid var(--border);
+}
+.template-rep-body .crop-label {
+  margin-bottom: 4px;
+}
+.body-mask-wrap { margin-top: 8px; max-width: 100%; }
+.body-mask-wrap.body-mask-empty {
+  font-size: 10px; color: var(--muted); padding: 4px 0;
+}
+.body-mask-caption {
+  font-size: 10px; color: var(--muted); line-height: 1.35; margin-bottom: 5px;
+  max-width: 520px;
+}
+.body-mask-caption .body-mask-hl { color: var(--accent); }
+.body-mask-chart {
+  display: inline-block; vertical-align: top;
+  border: 1px solid var(--border); border-radius: 4px; padding: 5px 7px;
+  background: #0b1220; max-height: 340px; min-height: 48px;
+  overflow-y: auto; overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
+}
+.body-mask-chart--compact {
+  max-height: 220px; padding: 4px 5px;
+}
+.template-rep-body .body-mask-chart {
+  max-height: 280px; width: 100%; display: block;
+}
+.body-mask-chart .mask-row {
+  display: flex; align-items: center; gap: 5px; margin: 0 0 1px 0;
+}
+.body-mask-chart .row-idx {
+  width: 1.6em; flex-shrink: 0; font: 9px ui-monospace, monospace;
+  color: #6e7681; text-align: right;
+}
+.body-mask-chart .mask-cells { display: flex; flex-direction: row; gap: 0; }
+.body-mask-chart .cell {
+  width: 8px; height: 11px; border: 1px solid #21262d; box-sizing: border-box;
+  flex-shrink: 0;
+}
+.body-mask-chart--compact .cell { width: 6px; height: 9px; }
+.body-mask-chart .cell.on { background: var(--accent); }
+.body-mask-chart .cell.off { background: #0d1117; }
+
+.body-mask-zone-legend {
+  font-size: 10px; color: var(--muted); line-height: 1.35;
+  margin: 4px 0 4px 0; max-width: 520px;
+}
+.template-zones-2d {
+  display: none;
+  margin: 8px 0 0 0;
+  padding: 8px 10px 10px 10px;
+  background: #0b1220;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  max-width: 520px;
+}
+.template.zones-on .template-zones-2d { display: block; }
+.template-zones-2d-label {
+  font: 600 10px/1.4 inherit;
+  color: var(--muted);
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+[data-template-zones-toggle] {
+  display: inline-flex;
+  margin-top: 6px;
+}
+.body-wf {
+  display: block;
+  --wf-aspect: 1.4;
+}
+.body-wf-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / var(--wf-aspect);
+  max-height: 360px;
+  background:
+    repeating-linear-gradient(0deg,
+      transparent 0, transparent 11px,
+      rgba(255, 255, 255, 0.04) 11px, rgba(255, 255, 255, 0.04) 12px),
+    repeating-linear-gradient(90deg,
+      transparent 0, transparent 11px,
+      rgba(255, 255, 255, 0.04) 11px, rgba(255, 255, 255, 0.04) 12px),
+    #11161e;
+  border: 1px solid #21262d;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px rgba(13, 17, 23, 0.6);
+  overflow: hidden;
+}
+.body-wf-zone {
+  position: absolute;
+  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  border-radius: 3px;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column;
+  gap: 2px;
+  cursor: help;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+}
+.body-wf-zone:hover {
+  z-index: 4;
+  transform: translateY(-1px);
+  filter: brightness(1.15);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+.body-wf-zone-num {
+  font: 700 14px/1 ui-monospace, monospace;
+  color: #0b1220;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
+  padding: 0 4px;
+  white-space: nowrap;
+}
+.body-wf-zone-dim {
+  font: 600 10px/1 ui-monospace, monospace;
+  color: rgba(11, 18, 32, 0.85);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+  white-space: nowrap;
+}
+.body-wf-summary {
+  margin: 8px 0 0 0;
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.45;
+  font-weight: 500;
+}
+.body-wf-strip {
+  position: relative;
+  margin: 8px 0 0 0;
+  height: 18px;
+  width: 100%;
+  background: #11161e;
+  border: 1px solid #21262d;
+  border-radius: 3px;
+}
+.body-wf-strip-bar {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  border-radius: 2px;
+  border: 1px solid rgba(0, 0, 0, 0.45);
+  cursor: help;
+  mix-blend-mode: screen;
+}
+.body-wf-strip-bar[data-z="1"] { background: rgba(240, 192, 0, 0.85); }
+.body-wf-strip-bar[data-z="2"] { background: rgba(88, 166, 255, 0.85); }
+.body-wf-strip-bar[data-z="3"] { background: rgba(86, 211, 100, 0.85); }
+.body-wf-strip-bar[data-z="4"] { background: rgba(247, 129, 102, 0.85); }
+.body-wf-strip-bar[data-z="5"] { background: rgba(210, 168, 255, 0.85); }
+.body-wf-strip-bar[data-z="6"] { background: rgba(121, 192, 255, 0.85); }
+.body-wf-strip--empty {
+  display: flex; align-items: center; justify-content: center;
+  background: repeating-linear-gradient(
+    45deg,
+    #21262d 0, #21262d 4px,
+    #0b1220 4px, #0b1220 8px);
+}
+.body-wf-strip-empty {
+  font: italic 9px ui-monospace, monospace;
+  color: var(--muted);
+}
+.body-wf-sections {
+  margin: 6px 0 0 0;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.4;
+  letter-spacing: 0.1px;
+}
+.body-wf-sections-label {
+  display: inline-block;
+  font: 700 9px/1 ui-monospace, monospace;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-right: 4px;
+}
+.body-wf--compact .body-wf-frame { max-height: 240px; }
+.body-wf--compact .body-wf-summary { font-size: 12px; }
+.body-wf--compact .body-wf-strip { height: 14px; }
+.body-wf-zone[data-z="1"], .body-wf-zone:nth-of-type(6n + 1) { background: rgba(240, 192, 0, 0.78); border-color: #f0c000; }
+.body-wf-zone[data-z="2"], .body-wf-zone:nth-of-type(6n + 2) { background: rgba(88, 166, 255, 0.78); border-color: #58a6ff; }
+.body-wf-zone[data-z="3"], .body-wf-zone:nth-of-type(6n + 3) { background: rgba(86, 211, 100, 0.78); border-color: #56d364; }
+.body-wf-zone[data-z="4"], .body-wf-zone:nth-of-type(6n + 4) { background: rgba(247, 129, 102, 0.78); border-color: #f78166; }
+.body-wf-zone[data-z="5"], .body-wf-zone:nth-of-type(6n + 5) { background: rgba(210, 168, 255, 0.78); border-color: #d2a8ff; }
+.body-wf-zone[data-z="6"], .body-wf-zone:nth-of-type(6n + 6) { background: rgba(121, 192, 255, 0.78); border-color: #79c0ff; }
+.body-wf--empty .body-wf-frame {
+  display: flex; align-items: center; justify-content: center;
+  background: repeating-linear-gradient(
+    45deg,
+    #21262d 0, #21262d 6px,
+    #0b1220 6px, #0b1220 12px
+  );
+}
+.body-wf-empty-label {
+  font: italic 11px ui-monospace, monospace;
+  color: var(--muted);
+  background: rgba(13, 17, 23, 0.7);
+  padding: 2px 8px; border-radius: 3px;
+}
+
+.member-full-toolbar {
+  display: flex; gap: 6px; align-items: center;
+  margin: 0 0 4px 0;
+}
+.member-full-toolbar .crop-label { flex: 1; }
+.btn-toggle {
+  background: #21262d; color: var(--text);
+  border: 1px solid var(--border); border-radius: 4px;
+  padding: 3px 10px; font: 600 10px/1.4 inherit;
+  cursor: pointer; letter-spacing: 0.3px; text-transform: uppercase;
+}
+.btn-toggle:hover { background: #2d333b; border-color: #444c56; }
+.btn-toggle.is-on { background: var(--accent); color: #0b1220; border-color: #b88a00; }
+.btn-toggle--mini {
+  padding: 1px 7px; font-size: 9px; border-radius: 3px;
+  letter-spacing: 0.4px; line-height: 1.5;
+}
+.template-toolbar {
+  display: flex; gap: 8px; align-items: center;
+  padding: 8px 14px; border-bottom: 1px solid var(--border);
+  background: #0e141c;
+  font-size: 11px; color: var(--muted);
+}
+.template-toolbar .toolbar-label { color: var(--muted); }
+
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+<header class="summary">
+  <h1>Template families</h1>
+  <div class="stat"><strong>5</strong> families</div>
+  <div class="stat"><strong>15</strong> pages</div>
+  <div class="stat"><strong>2</strong> singletons</div>
+  <div class="stat"><strong>7</strong> biggest family</div>
+  <div class="stat"><strong>0</strong> defaulted pages</div>
+  <input id="search" placeholder="Search URL substring or template signal text">
+  <p class="policy-run"><strong>This run</strong> (<code>pages.templates.summary.json</code>): merge phase: <strong>top-section only</strong> · <code>family_body_split</code>: <strong>True</strong> · body matcher: <strong>column_shape_smaller_side_paired</strong> · phase-5 families body-split: <strong>1</strong> (families_seen=3, sub_templates=5).</p>
+  <p class="order-note">Default <code>--sort values</code>: lexicographic <strong>integer tuples</strong>
+    from header layout (sizes, weights, colors, visual kind/bucket, …) then body strips
+    (active rows, span counts, row masks / zone inputs), then template size and id.
+    <code>--sort size</code> is largest-first only.</p>
+</header>
+
+<details class="legend">
+  <summary>How to use this report</summary>
+  <div class="legend-body">
+    <p>Open a family card to browse its pages.</p>
+    <p>Inside each page card:</p>
+    <ul>
+      <li><strong>Full page screenshot</strong>: shown as a short preview.
+      <strong>Click the image</strong> to expand it in place at the
+      thumbnail's column width; click again (or use <strong>Close</strong>)
+      to collapse. <strong>Cmd-click</strong> or <strong>middle-click</strong>
+      opens the source jpg in a new tab.</li>
+    </ul>
+    <p>Each template card shows one body-zone wireframe (the
+    representative page's). Body zones come from connected-component
+    labelling on the 16-bin body strip-mask grid; pages are compared on
+    the horizontal extents of those zones (height ignored). A match
+    needs the section sets to greedy-IoU pair up above
+    <code>horizontal_section_iou_threshold</code>.</p>
+    <p>Pages marked <span class="fb-tag-inline">DEFAULTED</span> used the
+    fallback top-section crop strategy.</p>
+  </div>
+</details>
+
+<main>
+    <details class="template" data-search="https://wknd-trendsetters.site/blog https://wknd-trendsetters.site/case-studies https://wknd-trendsetters.site/fashion-insights text track: w600 · #f0f0f0 → w700 · #000000 · layout track: t">
+      <summary>
+        <div class="summary-row">
+          <span class="tid">#-3</span>
+          <span class="size">3 pages</span>
+          <span class="clean-badge">all detected</span>
+          <span class="label">blog</span>
+        </div>
+        <div class="template-desc">
+          <div><strong>Representative page:</strong> https://wknd-trendsetters.site/fashion-insights</div>
+          <div><strong>Header signal:</strong> Text track: w600 · #f0f0f0 → w700 · #000000 · Layout track: t</div>
+          <button type="button" class="btn-toggle btn-toggle--mini" data-template-zones-toggle
+            aria-pressed="false"
+            title="Show or hide the body-zone wireframe for this template.">
+            Show body zones
+          </button>
+          <div class="template-zones-2d"><div class="template-zones-2d-label">Body zones (representative page)</div><div class="body-wf body-wf--compact"><div class="body-wf-frame" style="--wf-aspect:2.303"><div class="body-wf-zone" data-z="1" style="left:6.250%;top:0.000%;width:87.500%;height:94.118%" title="Zone 1: x 6–94% (87.5% wide), y 0–94% (94.1% tall). Built by 4-connectivity CCL on the body strip mask grid (16 bins x N strips), then axis-aligned bounding box."><span class="body-wf-zone-num">Zone 1</span><span class="body-wf-zone-dim">88% × 94%</span></div></div><div class="body-wf-strip" title="Horizontal-section signature - what the body matcher compares."><span class="body-wf-strip-bar" data-z="1" style="left:6.250%;width:87.500%" title="Section 1: x 6–94% (87.5% wide). The body matcher compares pages on the set of these horizontal sections only; height is ignored."></span></div><div class="body-wf-summary">1 zone: center (x 6–94%, y 0–94%).</div><div class="body-wf-sections" title="The body matcher compares pages on this horizontal-section signature only - height is ignored."><span class="body-wf-sections-label">Matcher sees:</span> 1 section: 6–94%.</div></div></div>
+        </div>
+      </summary>
+      <div class="template-toolbar">
+        <span class="toolbar-label">Full-page screenshots (3 pages):</span>
+        <button type="button" class="btn-toggle" data-template-expand-all
+          title="Expand every full-page screenshot inside this template.">
+          Expand all
+        </button>
+        <button type="button" class="btn-toggle" data-template-collapse-all
+          title="Collapse every full-page screenshot inside this template.">
+          Collapse all
+        </button>
+      </div>
+      <div class="members">
+    <div class="member">
+      <div class="url">https://wknd-trendsetters.site/blog</div>
+      <div class="member-meta-row">
+        <span class="strategy">crop ends at heading bottom (no neat container)</span>
+        <div class="title-line"><span class="label">picked title</span><span class="value">WKND Trendsetters Blog</span></div>
+      </div>
+      <div class="member-visual">
+        <div class="member-col-full">
+          <div class="member-full-toolbar"><span class="crop-label">Full page screenshot</span><button type="button" class="btn-toggle" data-full-toggle aria-pressed="false" title="Expand or collapse this screenshot in place.">Expand</button></div>
+          <div class="member-full-wrap" data-full-wrap><a class="full-link" href="assets/wknd-trendsetters_site_blog--c5abf4d2/full-page.jpg" target="_blank" rel="noopener" title="Click to expand in place; click again to collapse. Middle-click or cmd-click to open the source jpg in a new tab."><img class="full" src="assets/wknd-trendsetters_site_blog--c5abf4d2/full-page.jpg" loading="lazy" alt="full page screenshot"></a></div>
+        </div>
+      </div>
+    </div>
+    <div class="member">
+      <div class="url">https://wknd-trendsetters.site/case-studies</div>
+      <div class="member-meta-row">
+        <span class="strategy">crop ends at heading bottom (no neat container)</span>
+        <div class="title-line"><span class="label">picked title</span><span class="value">Fresh looks, bold stories, real life</span></div>
+      </div>
+      <div class="member-visual">
+        <div class="member-col-full">
+          <div class="member-full-toolbar"><span class="crop-label">Full page screenshot</span><button type="button" class="btn-toggle" data-full-toggle aria-pressed="false" title="Expand or collapse this screenshot in place.">Expand</button></div>
+          <div class="member-full-wrap" data-full-wrap><a class="full-link" href="assets/wknd-trendsetters_site_case-studies--6e72cf32/full-page.jpg" target="_blank" rel="noopener" title="Click to expand in place; click again to collapse. Middle-click or cmd-click to open the source jpg in a new tab."><img class="full" src="assets/wknd-trendsetters_site_case-studies--6e72cf32/full-page.jpg" loading="lazy" alt="full page screenshot"></a></div>
+        </div>
+      </div>
+    </div>
+    <div class="member">
+      <div class="url">https://wknd-trendsetters.site/fashion-insights</div>
+      <div class="member-meta-row">
+        <span class="strategy">crop ends at heading bottom (no neat container)</span>
+        <div class="title-line"><span class="label">picked title</span><span class="value">WKND Trendsetters Blog</span></div>
+      </div>
+      <div class="member-visual">
+        <div class="member-col-full">
+          <div class="member-full-toolbar"><span class="crop-label">Full page screenshot</span><button type="button" class="btn-toggle" data-full-toggle aria-pressed="false" title="Expand or collapse this screenshot in place.">Expand</button></div>
+          <div class="member-full-wrap" data-full-wrap><a class="full-link" href="assets/wknd-trendsetters_site_fashion-insights--055129b6/full-page.jpg" target="_blank" rel="noopener" title="Click to expand in place; click again to collapse. Middle-click or cmd-click to open the source jpg in a new tab."><img class="full" src="assets/wknd-trendsetters_site_fashion-insights--055129b6/full-page.jpg" loading="lazy" alt="full page screenshot"></a></div>
+        </div>
+      </div>
+    </div></div>
+    </details>
+    <details class="template" data-search="https://wknd-trendsetters.site/faq text track: w600 · #f0f0f0 → w700 · #000000 · placeholder track: image (medium) · layout track: t → v">
+      <summary>
+        <div class="summary-row">
+          <span class="tid">#3</span>
+          <span class="size">1 pages</span>
+          <span class="clean-badge">all detected</span>
+          <span class="label">faq</span>
+        </div>
+        <div class="template-desc">
+          <div><strong>Representative page:</strong> https://wknd-trendsetters.site/faq</div>
+          <div><strong>Header signal:</strong> Text track: w600 · #f0f0f0 → w700 · #000000 · Placeholder track: image (medium) · Layout track: t → v</div>
+          <button type="button" class="btn-toggle btn-toggle--mini" data-template-zones-toggle
+            aria-pressed="false"
+            title="Show or hide the body-zone wireframe for this template.">
+            Show body zones
+          </button>
+          <div class="template-zones-2d"><div class="template-zones-2d-label">Body zones (representative page)</div><div class="body-wf body-wf--compact"><div class="body-wf-frame" style="--wf-aspect:1.160"><div class="body-wf-zone" data-z="1" style="left:6.250%;top:11.111%;width:68.750%;height:77.778%" title="Zone 1: x 6–75% (68.8% wide), y 11–89% (77.8% tall). Built by 4-connectivity CCL on the body strip mask grid (16 bins x N strips), then axis-aligned bounding box."><span class="body-wf-zone-num">Zone 1</span><span class="body-wf-zone-dim">69% × 78%</span></div></div><div class="body-wf-strip" title="Horizontal-section signature - what the body matcher compares."><span class="body-wf-strip-bar" data-z="1" style="left:6.250%;width:68.750%" title="Section 1: x 6–75% (68.8% wide). The body matcher compares pages on the set of these horizontal sections only; height is ignored."></span></div><div class="body-wf-summary">1 zone: center (x 6–75%, y 11–89%).</div><div class="body-wf-sections" title="The body matcher compares pages on this horizontal-section signature only - height is ignored."><span class="body-wf-sections-label">Matcher sees:</span> 1 section: 6–75%.</div></div></div>
+        </div>
+      </summary>
+      <div class="template-toolbar">
+        <span class="toolbar-label">Full-page screenshots (1 pages):</span>
+        <button type="button" class="btn-toggle" data-template-expand-all
+          title="Expand every full-page screenshot inside this template.">
+          Expand all
+        </button>
+        <button type="button" class="btn-toggle" data-template-collapse-all
+          title="Collapse every full-page screenshot inside this template.">
+          Collapse all
+        </button>
+      </div>
+      <div class="members">
+    <div class="member">
+      <div class="url">https://wknd-trendsetters.site/faq</div>
+      <div class="member-meta-row">
+        <span class="strategy">crop ends at heading bottom (no neat container)</span>
+        <div class="title-line"><span class="label">picked title</span><span class="value">Got questions? We&#x27;ve got answers.</span></div>
+      </div>
+      <div class="member-visual">
+        <div class="member-col-full">
+          <div class="member-full-toolbar"><span class="crop-label">Full page screenshot</span><button type="button" class="btn-toggle" data-full-toggle aria-pressed="false" title="Expand or collapse this screenshot in place.">Expand</button></div>
+          <div class="member-full-wrap" data-full-wrap><a class="full-link" href="assets/wknd-trendsetters_site_faq--5706b7ac/full-page.jpg" target="_blank" rel="noopener" title="Click to expand in place; click again to collapse. Middle-click or cmd-click to open the source jpg in a new tab."><img class="full" src="assets/wknd-trendsetters_site_faq--5706b7ac/full-page.jpg" loading="lazy" alt="full page screenshot"></a></div>
+        </div>
+      </div>
+    </div></div>
+    </details>
+    <details class="template" data-search="https://wknd-trendsetters.site/ https://wknd-trendsetters.site/fashion-trends-of-the-season https://wknd-trendsetters.site/fashion-trends-young-adults text track: w600 · #f0f0f0 → w700 · #000000 · placeholder track: image (small) · layout track: t → v">
+      <summary>
+        <div class="summary-row">
+          <span class="tid">#2</span>
+          <span class="size">3 pages</span>
+          <span class="clean-badge">all detected</span>
+          <span class="label">wknd-trendsetters.site</span>
+        </div>
+        <div class="template-desc">
+          <div><strong>Representative page:</strong> https://wknd-trendsetters.site/</div>
+          <div><strong>Header signal:</strong> Text track: w600 · #f0f0f0 → w700 · #000000 · Placeholder track: image (small) · Layout track: t → v</div>
+          <button type="button" class="btn-toggle btn-toggle--mini" data-template-zones-toggle
+            aria-pressed="false"
+            title="Show or hide the body-zone wireframe for this template.">
+            Show body zones
+          </button>
+          <div class="template-zones-2d"><div class="template-zones-2d-label">Body zones (representative page)</div><div class="body-wf body-wf--compact"><div class="body-wf-frame" style="--wf-aspect:3.362"><div class="body-wf-zone" data-z="1" style="left:6.250%;top:0.000%;width:68.750%;height:4.000%" title="Zone 1: x 6–75% (68.8% wide), y 0–4% (4.0% tall). Built by 4-connectivity CCL on the body strip mask grid (16 bins x N strips), then axis-aligned bounding box."><span class="body-wf-zone-num">Zone 1</span></div><div class="body-wf-zone" data-z="2" style="left:6.250%;top:8.000%;width:81.250%;height:8.000%" title="Zone 2: x 6–88% (81.2% wide), y 8–16% (8.0% tall). Built by 4-connectivity CCL on the body strip mask grid (16 bins x N strips), then axis-aligned bounding box."><span class="body-wf-zone-num">Zone 2</span></div><div class="body-wf-zone" data-z="3" style="left:6.250%;top:20.000%;width:87.500%;height:32.000%" title="Zone 3: x 6–94% (87.5% wide), y 20–52% (32.0% tall). Built by 4-connectivity CCL on the body strip mask grid (16 bins x N strips), then axis-aligned bounding box."><span class="body-wf-zone-num">Zone 3</span><span class="body-wf-zone-dim">88% × 32%</span></div><div class="body-wf-zone" data-z="4" style="left:6.250%;top:56.000%;width:87.500%;height:40.000%" title="Zone 4: x 6–94% (87.5% wide), y 56–96% (40.0% tall). Built by 4-connectivity CCL on the body strip mask grid (16 bins x N strips), then axis-aligned bounding box."><span class="body-wf-zone-num">Zone 4</span><span class="body-wf-zone-dim">88% × 40%</span></div></div><div class="body-wf-strip" title="Horizontal-section signature - what the body matcher compares."><span class="body-wf-strip-bar" data-z="1" style="left:6.250%;width:68.750%" title="Section 1: x 6–75% (68.8% wide). The body matcher compares pages on the set of these horizontal sections only; height is ignored."></span><span class="body-wf-strip-bar" data-z="2" style="left:6.250%;width:81.250%" title="Section 2: x 6–88% (81.2% wide). The body matcher compares pages on the set of these horizontal sections only; height is ignored."></span><span class="body-wf-strip-bar" data-z="3" style="left:6.250%;width:87.500%" title="Section 3: x 6–94% (87.5% wide). The body matcher compares pages on the set of these horizontal sections only; height is ignored."></span></div><div class="body-wf-summary">4 zones: top-center (x 6–75%, y 0–4%), top-center (x 6–88%, y 8–16%), center (x 6–94%, y 20–52%), and bottom-center (x 6–94%, y 56–96%).</div><div class="body-wf-sections" title="The body matcher compares pages on this horizontal-section signature only - height is ignored."><span class="body-wf-sections-label">Matcher sees:</span> 3 sections side-by-side: 6–75%, 6–88%, and 6–94%.</div></div></div>
+        </div>
+      </summary>
+      <div class="template-toolbar">
+        <span class="toolbar-label">Full-page screenshots (3 pages):</span>
+        <button type="button" class="btn-toggle" data-template-expand-all
+          title="Expand every full-page screenshot inside this template.">
+          Expand all
+        </button>
+        <button type="button" class="btn-toggle" data-template-collapse-all
+          title="Collapse every full-page screenshot inside this template.">
+          Collapse all
+        </button>
+      </div>
+      <div class="members">
+    <div class="member">
+      <div class="url">https://wknd-trendsetters.site/</div>
+      <div class="member-meta-row">
+        <span class="strategy">crop ends at heading bottom (no neat container)</span>
+        <div class="title-line"><span class="label">picked title</span><span class="value">Fresh looks, bold stories, real life</span></div>
+      </div>
+      <div class="member-visual">
+        <div class="member-col-full">
+          <div class="member-full-toolbar"><span class="crop-label">Full page screenshot</span><button type="button" class="btn-toggle" data-full-toggle aria-pressed="false" title="Expand or collapse this screenshot in place.">Expand</button></div>
+          <div class="member-full-wrap" data-full-wrap><a class="full-link" href="assets/wknd-trendsetters_site--32ff5b5e/full-page.jpg" target="_blank" rel="noopener" title="Click to expand in place; click again to collapse. Middle-click or cmd-click to open the source jpg in a new tab."><img class="full" src="assets/wknd-trendsetters_site--32ff5b5e/full-page.jpg" loading="lazy" alt="full page screenshot"></a></div>
+        </div>
+      </div>
+    </div>
+    <div class="member">
+      <div class="url">https://wknd-trendsetters.site/fashion-trends-of-the-season</div>
+      <div class="member-meta-row">
+        <span class="strategy">crop ends at heading bottom (no neat container)</span>
+        <div class="title-line"><span class="label">picked title</span><span class="value">Fresh fits, bold moves — Trends for every vibe.</span></div>
+      </div>
+      <div class="member-visual">
+        <div class="member-col-full">
+          <div class="member-full-toolbar"><span class="crop-label">Full page screenshot</span><button type="button" class="btn-toggle" data-full-toggle aria-pressed="false" title="Expand or collapse this screenshot in place.">Expand</button></div>
+          <div class="member-full-wrap" data-full-wrap><a class="full-link" href="assets/wknd-trendsetters_site_fashion-trends-of-the-season--c3986399/full-page.jpg" target="_blank" rel="noopener" title="Click to expand in place; click again to collapse. Middle-click or cmd-click to open the source jpg in a new tab."><img class="full" src="assets/wknd-trendsetters_site_fashion-trends-of-the-season--c3986399/full-page.jpg" loading="lazy" alt="full page screenshot"></a></div>
+        </div>
+      </div>
+    </div>
+    <div class="member">
+      <div class="url">https://wknd-trendsetters.site/fashion-trends-young-adults</div>
+      <div class="member-meta-row">
+        <span class="strategy">crop ends at heading bottom (no neat container)</span>
+        <div class="title-line"><span class="label">picked title</span><span class="value">Fresh fits, bold moves. Style that never sleeps</span></div>
+      </div>
+      <div class="member-visual">
+        <div class="member-col-full">
+          <div class="member-full-toolbar"><span class="crop-label">Full page screenshot</span><button type="button" class="btn-toggle" data-full-toggle aria-pressed="false" title="Expand or collapse this screenshot in place.">Expand</button></div>
+          <div class="member-full-wrap" data-full-wrap><a class="full-link" href="assets/wknd-trendsetters_site_fashion-trends-young-adults--6f041216/full-page.jpg" target="_blank" rel="noopener" title="Click to expand in place; click again to collapse. Middle-click or cmd-click to open the source jpg in a new tab."><img class="full" src="assets/wknd-trendsetters_site_fashion-trends-young-adults--6f041216/full-page.jpg" loading="lazy" alt="full page screenshot"></a></div>
+        </div>
+      </div>
+    </div></div>
+    </details>
+    <details class="template" data-search="https://wknd-trendsetters.site/blog/ace-pro-court-polo https://wknd-trendsetters.site/blog/fashion-blog-post https://wknd-trendsetters.site/blog/fashion-trends-young-culture https://wknd-trendsetters.site/blog/fashion-trends-young-style https://wknd-trendsetters.site/blog/flip-flop-summer-style https://wknd-trendsetters.site/blog/latest-trends-young-casual-fashion https://wknd-trendsetters.site/blog/street-style-trends text track: w600 · #f0f0f0 → w500 · #000000 → w500 · #606060 → w700 · #000000 · placeholder track: image (medium) · layout track: t → v">
+      <summary>
+        <div class="summary-row">
+          <span class="tid">#1</span>
+          <span class="size">7 pages</span>
+          <span class="clean-badge">all detected</span>
+          <span class="label">blog/ace-pro-court-polo</span>
+        </div>
+        <div class="template-desc">
+          <div><strong>Representative page:</strong> https://wknd-trendsetters.site/blog/ace-pro-court-polo</div>
+          <div><strong>Header signal:</strong> Text track: w600 · #f0f0f0 → w500 · #000000 → w500 · #606060 → w700 · #000000 · Placeholder track: image (medium) · Layout track: t → v</div>
+          <button type="button" class="btn-toggle btn-toggle--mini" data-template-zones-toggle
+            aria-pressed="false"
+            title="Show or hide the body-zone wireframe for this template.">
+            Show body zones
+          </button>
+          <div class="template-zones-2d"><div class="template-zones-2d-label">Body zones (representative page)</div><div class="body-wf body-wf--compact"><div class="body-wf-frame" style="--wf-aspect:2.462"><div class="body-wf-zone" data-z="1" style="left:25.000%;top:0.000%;width:50.000%;height:94.444%" title="Zone 1: x 25–75% (50.0% wide), y 0–94% (94.4% tall). Built by 4-connectivity CCL on the body strip mask grid (16 bins x N strips), then axis-aligned bounding box."><span class="body-wf-zone-num">Zone 1</span><span class="body-wf-zone-dim">50% × 94%</span></div></div><div class="body-wf-strip" title="Horizontal-section signature - what the body matcher compares."><span class="body-wf-strip-bar" data-z="1" style="left:25.000%;width:50.000%" title="Section 1: x 25–75% (50.0% wide). The body matcher compares pages on the set of these horizontal sections only; height is ignored."></span></div><div class="body-wf-summary">1 zone: center (x 25–75%, y 0–94%).</div><div class="body-wf-sections" title="The body matcher compares pages on this horizontal-section signature only - height is ignored."><span class="body-wf-sections-label">Matcher sees:</span> 1 section: 25–75%.</div></div></div>
+        </div>
+      </summary>
+      <div class="template-toolbar">
+        <span class="toolbar-label">Full-page screenshots (7 pages):</span>
+        <button type="button" class="btn-toggle" data-template-expand-all
+          title="Expand every full-page screenshot inside this template.">
+          Expand all
+        </button>
+        <button type="button" class="btn-toggle" data-template-collapse-all
+          title="Collapse every full-page screenshot inside this template.">
+          Collapse all
+        </button>
+      </div>
+      <div class="members">
+    <div class="member">
+      <div class="url">https://wknd-trendsetters.site/blog/ace-pro-court-polo</div>
+      <div class="member-meta-row">
+        <span class="strategy">crop ends at heading bottom (no neat container)</span>
+        <div class="title-line"><span class="label">picked title</span><span class="value">Court cool, street ready — the Ace Pro polo</span></div>
+      </div>
+      <div class="member-visual">
+        <div class="member-col-full">
+          <div class="member-full-toolbar"><span class="crop-label">Full page screenshot</span><button type="button" class="btn-toggle" data-full-toggle aria-pressed="false" title="Expand or collapse this screenshot in place.">Expand</button></div>
+          <div class="member-full-wrap" data-full-wrap><a class="full-link" href="assets/wknd-trendsetters_site_blog_ace-pro-court-polo--f4d90163/full-page.jpg" target="_blank" rel="noopener" title="Click to expand in place; click again to collapse. Middle-click or cmd-click to open the source jpg in a new tab."><img class="full" src="assets/wknd-trendsetters_site_blog_ace-pro-court-polo--f4d90163/full-page.jpg" loading="lazy" alt="full page screenshot"></a></div>
+        </div>
+      </div>
+    </div>
+    <div class="member">
+      <div class="url">https://wknd-trendsetters.site/blog/fashion-blog-post</div>
+      <div class="member-meta-row">
+        <span class="strategy">crop ends at heading bottom (no neat container)</span>
+        <div class="title-line"><span class="label">picked title</span><span class="value">Game on, style up</span></div>
+      </div>
+      <div class="member-visual">
+        <div class="member-col-full">
+          <div class="member-full-toolbar"><span class="crop-label">Full page screenshot</span><button type="button" class="btn-toggle" data-full-toggle aria-pressed="false" title="Expand or collapse this screenshot in place.">Expand</button></div>
+          <div class="member-full-wrap" data-full-wrap><a class="full-link" href="assets/wknd-trendsetters_site_blog_fashion-blog-post--d799affb/full-page.jpg" target="_blank" rel="noopener" title="Click to expand in place; click again to collapse. Middle-click or cmd-click to open the source jpg in a new tab."><img class="full" src="assets/wknd-trendsetters_site_blog_fashion-blog-post--d799affb/full-page.jpg" loading="lazy" alt="full page screenshot"></a></div>
+        </div>
+      </div>
+    </div>
+    <div class="member">
+      <div class="url">https://wknd-trendsetters.site/blog/fashion-trends-young-culture</div>
+      <div class="member-meta-row">
+        <span class="strategy">crop ends at heading bottom (no neat container)</span>
+        <div class="title-line"><span class="label">picked title</span><span class="value">Sunkissed and effortless</span></div>
+      </div>
+      <div class="member-visual">
+        <div class="member-col-full">
+          <div class="member-full-toolbar"><span class="crop-label">Full page screenshot</span><button type="button" class="btn-toggle" data-full-toggle aria-pressed="false" title="Expand or collapse this screenshot in place.">Expand</button></div>
+          <div class="member-full-wrap" data-full-wrap><a class="full-link" href="assets/wknd-trendsetters_site_blog_fashion-trends-young-culture--df14d5aa/full-page.jpg" target="_blank" rel="noopener" title="Click to expand in place; click again to collapse. Middle-click or cmd-click to open the source jpg in a new tab."><img class="full" src="assets/wknd-trendsetters_site_blog_fashion-trends-young-culture--df14d5aa/full-page.jpg" loading="lazy" alt="full page screenshot"></a></div>
+        </div>
+      </div>
+    </div>
+    <div class="member">
+      <div class="url">https://wknd-trendsetters.site/blog/fashion-trends-young-style</div>
+      <div class="member-meta-row">
+        <span class="strategy">crop ends at heading bottom (no neat container)</span>
+        <div class="title-line"><span class="label">picked title</span><span class="value">Party fits that pop</span></div>
+      </div>
+      <div class="member-visual">
+        <div class="member-col-full">
+          <div class="member-full-toolbar"><span class="crop-label">Full page screenshot</span><button type="button" class="btn-toggle" data-full-toggle aria-pressed="false" title="Expand or collapse this screenshot in place.">Expand</button></div>
+          <div class="member-full-wrap" data-full-wrap><a class="full-link" href="assets/wknd-trendsetters_site_blog_fashion-trends-young-style--85d6178c/full-page.jpg" target="_blank" rel="noopener" title="Click to expand in place; click again to collapse. Middle-click or cmd-click to open the source jpg in a new tab."><img class="full" src="assets/wknd-trendsetters_site_blog_fashion-trends-young-style--85d6178c/full-page.jpg" loading="lazy" alt="full page screenshot"></a></div>
+        </div>
+      </div>
+    </div>
+    <div class="member">
+      <div class="url">https://wknd-trendsetters.site/blog/flip-flop-summer-style</div>
+      <div class="member-meta-row">
+        <span class="strategy">crop ends at heading bottom (no neat container)</span>
+        <div class="title-line"><span class="label">picked title</span><span class="value">Slide into summer — flip flops that serve</span></div>
+      </div>
+      <div class="member-visual">
+        <div class="member-col-full">
+          <div class="member-full-toolbar"><span class="crop-label">Full page screenshot</span><button type="button" class="btn-toggle" data-full-toggle aria-pressed="false" title="Expand or collapse this screenshot in place.">Expand</button></div>
+          <div class="member-full-wrap" data-full-wrap><a class="full-link" href="assets/wknd-trendsetters_site_blog_flip-flop-summer-style--2c4ce901/full-page.jpg" target="_blank" rel="noopener" title="Click to expand in place; click again to collapse. Middle-click or cmd-click to open the source jpg in a new tab."><img class="full" src="assets/wknd-trendsetters_site_blog_flip-flop-summer-style--2c4ce901/full-page.jpg" loading="lazy" alt="full page screenshot"></a></div>
+        </div>
+      </div>
+    </div>
+    <div class="member">
+      <div class="url">https://wknd-trendsetters.site/blog/latest-trends-young-casual-fashion</div>
+      <div class="member-meta-row">
+        <span class="strategy">crop ends at heading bottom (no neat container)</span>
+        <div class="title-line"><span class="label">picked title</span><span class="value">Tennis style, redefined</span></div>
+      </div>
+      <div class="member-visual">
+        <div class="member-col-full">
+          <div class="member-full-toolbar"><span class="crop-label">Full page screenshot</span><button type="button" class="btn-toggle" data-full-toggle aria-pressed="false" title="Expand or collapse this screenshot in place.">Expand</button></div>
+          <div class="member-full-wrap" data-full-wrap><a class="full-link" href="assets/wknd-trendsetters_site_blog_latest-trends-young-casual-fashion--68825ee3/full-page.jpg" target="_blank" rel="noopener" title="Click to expand in place; click again to collapse. Middle-click or cmd-click to open the source jpg in a new tab."><img class="full" src="assets/wknd-trendsetters_site_blog_latest-trends-young-casual-fashion--68825ee3/full-page.jpg" loading="lazy" alt="full page screenshot"></a></div>
+        </div>
+      </div>
+    </div>
+    <div class="member">
+      <div class="url">https://wknd-trendsetters.site/blog/street-style-trends</div>
+      <div class="member-meta-row">
+        <span class="strategy">crop ends at heading bottom (no neat container)</span>
+        <div class="title-line"><span class="label">picked title</span><span class="value">Street style, your way</span></div>
+      </div>
+      <div class="member-visual">
+        <div class="member-col-full">
+          <div class="member-full-toolbar"><span class="crop-label">Full page screenshot</span><button type="button" class="btn-toggle" data-full-toggle aria-pressed="false" title="Expand or collapse this screenshot in place.">Expand</button></div>
+          <div class="member-full-wrap" data-full-wrap><a class="full-link" href="assets/wknd-trendsetters_site_blog_street-style-trends--2dba1005/full-page.jpg" target="_blank" rel="noopener" title="Click to expand in place; click again to collapse. Middle-click or cmd-click to open the source jpg in a new tab."><img class="full" src="assets/wknd-trendsetters_site_blog_street-style-trends--2dba1005/full-page.jpg" loading="lazy" alt="full page screenshot"></a></div>
+        </div>
+      </div>
+    </div></div>
+    </details>
+    <details class="template" data-search="https://wknd-trendsetters.site/fashion-trends-young-adults-casual-sport text track: w600 · #f0f0f0 → w700 · #000000 → w400 · #000000 → w600 · #f0f0f0 · placeholder track: image (small) · layout track: t → v">
+      <summary>
+        <div class="summary-row">
+          <span class="tid">#-8</span>
+          <span class="size">1 pages</span>
+          <span class="clean-badge">all detected</span>
+          <span class="label">fashion-trends-young-adults-casual-sport</span>
+        </div>
+        <div class="template-desc">
+          <div><strong>Representative page:</strong> https://wknd-trendsetters.site/fashion-trends-young-adults-casual-sport</div>
+          <div><strong>Header signal:</strong> Text track: w600 · #f0f0f0 → w700 · #000000 → w400 · #000000 → w600 · #f0f0f0 · Placeholder track: image (small) · Layout track: t → v</div>
+          <button type="button" class="btn-toggle btn-toggle--mini" data-template-zones-toggle
+            aria-pressed="false"
+            title="Show or hide the body-zone wireframe for this template.">
+            Show body zones
+          </button>
+          <div class="template-zones-2d"><div class="template-zones-2d-label">Body zones (representative page)</div><div class="body-wf body-wf--compact"><div class="body-wf-frame" style="--wf-aspect:1.726"><div class="body-wf-zone" data-z="1" style="left:6.250%;top:7.692%;width:87.500%;height:84.615%" title="Zone 1: x 6–94% (87.5% wide), y 8–92% (84.6% tall). Built by 4-connectivity CCL on the body strip mask grid (16 bins x N strips), then axis-aligned bounding box."><span class="body-wf-zone-num">Zone 1</span><span class="body-wf-zone-dim">88% × 85%</span></div></div><div class="body-wf-strip" title="Horizontal-section signature - what the body matcher compares."><span class="body-wf-strip-bar" data-z="1" style="left:6.250%;width:87.500%" title="Section 1: x 6–94% (87.5% wide). The body matcher compares pages on the set of these horizontal sections only; height is ignored."></span></div><div class="body-wf-summary">1 zone: center (x 6–94%, y 8–92%).</div><div class="body-wf-sections" title="The body matcher compares pages on this horizontal-section signature only - height is ignored."><span class="body-wf-sections-label">Matcher sees:</span> 1 section: 6–94%.</div></div></div>
+        </div>
+      </summary>
+      <div class="template-toolbar">
+        <span class="toolbar-label">Full-page screenshots (1 pages):</span>
+        <button type="button" class="btn-toggle" data-template-expand-all
+          title="Expand every full-page screenshot inside this template.">
+          Expand all
+        </button>
+        <button type="button" class="btn-toggle" data-template-collapse-all
+          title="Collapse every full-page screenshot inside this template.">
+          Collapse all
+        </button>
+      </div>
+      <div class="members">
+    <div class="member">
+      <div class="url">https://wknd-trendsetters.site/fashion-trends-young-adults-casual-sport</div>
+      <div class="member-meta-row">
+        <span class="strategy">crop ends at heading container (full-width box wrapping the heading)</span>
+        <div class="title-line"><span class="label">picked title</span><span class="value">Fresh fits, bold moves, all you</span></div>
+      </div>
+      <div class="member-visual">
+        <div class="member-col-full">
+          <div class="member-full-toolbar"><span class="crop-label">Full page screenshot</span><button type="button" class="btn-toggle" data-full-toggle aria-pressed="false" title="Expand or collapse this screenshot in place.">Expand</button></div>
+          <div class="member-full-wrap" data-full-wrap><a class="full-link" href="assets/wknd-trendsetters_site_fashion-trends-young-adults-casual-sport--b40dc265/full-page.jpg" target="_blank" rel="noopener" title="Click to expand in place; click again to collapse. Middle-click or cmd-click to open the source jpg in a new tab."><img class="full" src="assets/wknd-trendsetters_site_fashion-trends-young-adults-casual-sport--b40dc265/full-page.jpg" loading="lazy" alt="full page screenshot"></a></div>
+        </div>
+      </div>
+    </div></div>
+    </details></main>
+<script>
+const search = document.getElementById('search');
+search.addEventListener('input', () => {
+  const q = search.value.toLowerCase().trim();
+  document.querySelectorAll('.template').forEach((tpl) => {
+    if (!q) { tpl.classList.remove('hidden'); return; }
+    const text = tpl.dataset.search;
+    tpl.classList.toggle('hidden', !text.includes(q));
+  });
+});
+
+function setExpanded(wrap, on) {
+  if (!wrap) return;
+  wrap.classList.toggle('expanded', !!on);
+  const member = wrap.closest('.member');
+  if (member) member.classList.toggle('expanded', !!on);
+  const btn = wrap.parentElement && wrap.parentElement.querySelector('[data-full-toggle]');
+  if (btn) {
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    btn.classList.toggle('is-on', !!on);
+    btn.textContent = on ? 'Collapse' : 'Expand';
+  }
+}
+
+document.querySelectorAll('[data-full-wrap]').forEach((wrap) => {
+  const img = wrap.querySelector('.full');
+  if (img) {
+    img.addEventListener('click', (e) => {
+      // Modifier/middle-click follows the parent <a> link instead.
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+      e.preventDefault();
+      setExpanded(wrap, !wrap.classList.contains('expanded'));
+    });
+  }
+});
+
+document.querySelectorAll('[data-full-toggle]').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const card = btn.closest('.member, .template-rep-body, .member-col-full');
+    if (!card) return;
+    const wrap = card.querySelector('[data-full-wrap]');
+    if (!wrap) return;
+    setExpanded(wrap, !wrap.classList.contains('expanded'));
+  });
+});
+
+function setAllInTemplate(btn, on) {
+  const tpl = btn.closest('.template');
+  if (!tpl) return;
+  tpl.querySelectorAll('[data-full-wrap]').forEach((w) => setExpanded(w, on));
+}
+document.querySelectorAll('[data-template-expand-all]').forEach((btn) => {
+  btn.addEventListener('click', () => setAllInTemplate(btn, true));
+});
+document.querySelectorAll('[data-template-collapse-all]').forEach((btn) => {
+  btn.addEventListener('click', () => setAllInTemplate(btn, false));
+});
+
+document.querySelectorAll('[data-template-zones-toggle]').forEach((btn) => {
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const tpl = btn.closest('.template');
+    if (!tpl) return;
+    const on = !tpl.classList.contains('zones-on');
+    tpl.classList.toggle('zones-on', on);
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    btn.classList.toggle('is-on', on);
+    btn.textContent = on ? 'Hide body zones' : 'Show body zones';
+  });
+});
+
+</script>
+</body>
+</html>
